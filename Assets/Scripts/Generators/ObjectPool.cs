@@ -4,13 +4,14 @@ using System.Linq;
 
 public class ObjectPool : MonoBehaviour
 {
+    [SerializeField] private GameObject template;
     [SerializeField] private GameObject container;
     [SerializeField] private int capacity;
 
     private Camera _camera;
-    private List<GameObject> _pool = new List<GameObject>();
+    private readonly List<GameObject> _pool = new();
 
-    protected void Initialize(GameObject template)
+    protected void Initialize()
     {
         _camera = Camera.main;
         for (int i = 0; i < capacity; i++)
@@ -35,12 +36,12 @@ public class ObjectPool : MonoBehaviour
         }
     }
     
-    protected bool TryGetObject(out GameObject result)
+    public bool TryGetObject(out GameObject result)
     {
         result = _pool.FirstOrDefault(p => p.activeSelf == false);
         return result != null;
     }
-
+    
     public void ResetPool()
     {
         foreach (var item in _pool)

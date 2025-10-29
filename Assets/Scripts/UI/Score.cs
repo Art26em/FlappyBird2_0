@@ -1,19 +1,27 @@
 using TMPro;
 using UnityEngine;
+using Zenject;
 
 public class Score : MonoBehaviour
 {
-    [SerializeField] private Bird bird;
     [SerializeField] private TMP_Text score;
-
+    
+    private Bird _bird;
+    
+    [Inject]
+    private void Construct(Bird bird)
+    {
+        _bird = bird;
+    }
+    
     private void OnEnable()
     {
-        bird.UpdateScore += UpdateScore;    
+        _bird.UpdateScore += UpdateScore;    
     }
 
     private void OnDisable()
     {
-        bird.UpdateScore -= UpdateScore;    
+        _bird.UpdateScore -= UpdateScore;    
     }
 
     private void UpdateScore(int playerScore)

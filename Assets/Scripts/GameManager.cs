@@ -1,24 +1,32 @@
 using UnityEngine;
+using Zenject;
 
 public class GameManager : MonoBehaviour
 {
-    [SerializeField] private Bird bird;
     [SerializeField] private PipeGenerator pipeGenerator;
     [SerializeField] private StartScreen startScreen;
     [SerializeField] private GameOverScreen gameOverScreen;
 
+    private Bird _bird;
+
+    [Inject]
+    private void Construct(Bird bird)
+    {
+        _bird = bird;
+    }
+    
     private void OnEnable()
     {
         startScreen.PlayButtonClick += OnPlayButtonClick;
         gameOverScreen.RestartButtonClick += OnRestartButtonClick;
-        bird.GameOver += OnGameOver;
+        _bird.GameOver += OnGameOver;
     }
 
     private void OnDisable()
     {
         startScreen.PlayButtonClick -= OnPlayButtonClick;
         gameOverScreen.RestartButtonClick -= OnRestartButtonClick;
-        bird.GameOver -= OnGameOver;
+        _bird.GameOver -= OnGameOver;
     }
 
     private void Start()
@@ -43,7 +51,7 @@ public class GameManager : MonoBehaviour
     private void StartGame()
     {
         Time.timeScale = 1;
-        bird.ResetPlayer();
+        _bird.ResetPlayer();
     }
 
     private void OnGameOver()

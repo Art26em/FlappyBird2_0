@@ -1,25 +1,31 @@
 using UnityEngine;
+using Zenject;
 
 [RequireComponent(typeof(Bird))]
-
 public class BirdColliderHandler : MonoBehaviour
 {
-    [SerializeField] private Bird bird;
+    private Bird _bird;
 
-    private void Awake()
+    [Inject]
+    private void Construct(Bird bird)
     {
-        bird = GetComponent<Bird>();
+        _bird = bird;
     }
-
+    
     private void OnTriggerEnter2D(Collider2D other)
     {
-        if (other.TryGetComponent(out ScoreZone scoreZone))
+        if (other.TryGetComponent(out ScoreZone _))
         {
-            bird.IncrementScore();    
+            _bird.IncrementScore();    
+        }
+        else if (other.TryGetComponent(out Coin coin))
+        {
+            _bird.IncrementCoins();
+            coin.gameObject.SetActive(false);
         }
         else
         {
-            bird.Die();    
+            _bird.Die();    
         }
     }
 }
