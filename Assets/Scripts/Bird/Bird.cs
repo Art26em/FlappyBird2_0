@@ -1,5 +1,5 @@
 using UnityEngine;
-using UnityEngine.Events;
+using Zenject;
 
 [RequireComponent(typeof(BirdMover))]
 [RequireComponent(typeof(SpriteRenderer))]
@@ -8,14 +8,20 @@ public class Bird : MonoBehaviour
     [SerializeField] private Sprite deadSprite;
     [SerializeField] private Sprite normalSprite;
     
+    private SpriteRenderer _spriteRenderer;
     private BirdMover _mover;
+    private SignalBus _signalBus;
     private int _score;
     private int _coins;
-    private SpriteRenderer _spriteRenderer;
     
-    public event UnityAction GameOver;
-    public event UnityAction<int> UpdateScore;
-    public event UnityAction<int> UpdateCoins;
+    public int Coins => _coins;
+    public bool isArmored;
+    
+    [Inject]
+    public void Construct(SignalBus signalBus)
+    {
+        _signalBus = signalBus;
+    }
     
     private void Awake()
     {
@@ -23,10 +29,16 @@ public class Bird : MonoBehaviour
         _spriteRenderer = GetComponent<SpriteRenderer>();
     }
 
-    public void ResetPlayer()
+    public void ResetPlayer(bool resetStats = true)
     {
-        _score = 0;
-        UpdateScore?.Invoke(_score);
+        if (resetStats)
+        {
+            _score = 0;
+            _signalBus.Fire(new ScoreChangedSignal(_score));
+
+            _coins = 0;
+            _signalBus.Fire(new CoinCountChangedSignal(_score));    
+        }
         _mover.ResetBird();
         _spriteRenderer.sprite = normalSprite;
     }
@@ -34,26 +46,32 @@ public class Bird : MonoBehaviour
     public void IncrementScore()
     {
         _score++;
-        UpdateScore?.Invoke(_score);
+        _signalBus.Fire(new ScoreChangedSignal(_score));
     }
     
     public void IncrementCoins()
     {
         _coins++;
-        UpdateCoins?.Invoke(_coins);
+        _signalBus.Fire(new CoinCountChangedSignal(_coins));
     }
     
     public void DecrementCoins(int amount)
     {
         _coins -= amount;
-        UpdateCoins?.Invoke(_coins);
+        _signalBus.Fire(new CoinCountChangedSignal(_coins));
     }
     
     public void Die()
     {
         _mover.DisableAnimator();
         _spriteRenderer.sprite = deadSprite;
-        GameOver?.Invoke();
+        _signalBus.Fire(new GameStateChangedSignal(GameState.GameOver));
+    }
+    
+    public void GetDamage()
+    {
+        isArmored = false;
+        _mover.ShowDamage();
     }
     
 }

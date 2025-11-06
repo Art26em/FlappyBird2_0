@@ -21,11 +21,18 @@ public class BirdColliderHandler : MonoBehaviour
         else if (other.TryGetComponent(out Coin coin))
         {
             _bird.IncrementCoins();
-            coin.gameObject.SetActive(false);
+            coin.OnCollect();
         }
         else
         {
-            _bird.Die();    
+            if (_bird.isArmored)
+            {
+                _bird.GetDamage();
+            }
+            else
+            {
+                _bird.Die();    
+            }
         }
     }
 }

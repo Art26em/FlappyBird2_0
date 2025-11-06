@@ -2,11 +2,9 @@ using UnityEngine.Events;
 
 public class GameOverScreen : Screen
 {
-    public event UnityAction RestartButtonClick;
-
     protected override void OnButtonClick()
     {
-        RestartButtonClick?.Invoke();
+        Close();
     }
 
     public override void Open()
@@ -19,5 +17,6 @@ public class GameOverScreen : Screen
     {
         canvasGroup.alpha = 0;
         button.interactable = false;
+        SignalBus.Fire(new GameStateChangedSignal(GameState.Starting));
     }
 }

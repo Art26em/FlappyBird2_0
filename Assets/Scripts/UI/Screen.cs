@@ -1,11 +1,20 @@
 using UnityEngine;
 using UnityEngine.UI;
+using Zenject;
 
 public abstract class Screen : MonoBehaviour
 {
     [SerializeField] protected CanvasGroup canvasGroup;
     [SerializeField] protected Button button;
 
+    protected SignalBus SignalBus;
+    
+    [Inject]
+    public void Construct(SignalBus signalBus)
+    {
+        SignalBus = signalBus;    
+    }
+    
     private void OnEnable()
     {
         button.onClick.AddListener(OnButtonClick);
@@ -17,7 +26,9 @@ public abstract class Screen : MonoBehaviour
     }
 
     protected abstract void OnButtonClick();
+
     public abstract void Open();
-    public abstract void Close();
     
+    public abstract void Close();
+
 }

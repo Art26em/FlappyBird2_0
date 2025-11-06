@@ -1,15 +1,16 @@
 using TMPro;
 using UnityEngine;
-using UnityEngine.Events;
+using DG.Tweening;
 
 public class StartScreen : Screen
 {
     [SerializeField] private TMP_Text scoreText;
-    public event UnityAction PlayButtonClick;
-    
+
+    private const string StartScoreText = "0";
+
     protected override void OnButtonClick()
     {
-        PlayButtonClick?.Invoke();
+        Close();
     }
 
     public override void Open()
@@ -21,8 +22,15 @@ public class StartScreen : Screen
 
     public override void Close()
     {
-        canvasGroup.alpha = 0;
         button.interactable = false;
-        scoreText.text = "0";
+        DOTween.To(FadeOut, 1f, 0f, 2f);
+        scoreText.text = StartScoreText;
+        SignalBus.Fire(new GameStateChangedSignal(GameState.Playing));
     }
+
+    private void FadeOut(float value)
+    {
+        canvasGroup.alpha = value;
+    }
+    
 }

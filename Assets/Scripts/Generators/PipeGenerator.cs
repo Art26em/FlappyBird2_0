@@ -1,38 +1,12 @@
-using UnityEngine;
 using Zenject;
 
-public class PipeGenerator : ObjectPool
+public class PipeGenerator : ObjectGenerator
 {
-    private ObjectSpawner _objectSpawner;
-    private ObjectMover _objectMover;
-    
-    private float _elapsedTime;
-
     [Inject]
-    private void Construct(ObjectSpawner objectSpawner, ObjectMover objectMover)
+    private void Construct(PipeSpawner pipeSpawner, PipeMover pipeMover)
     {
-        _objectSpawner = objectSpawner;
-        _objectMover = objectMover;
-    }
-    
-    private void Start()
-    {
-        Initialize();        
-    }
-
-    private void Update()
-    {
-        _elapsedTime += Time.deltaTime;
-        if (!_objectSpawner.IsTimeToSpawn(_elapsedTime)) return;
-
-        if (TryGetObject(out var pipe))
-        {
-            _objectSpawner.SpawnObject(pipe, transform.position);
-            _objectMover.StartObjectMoving(pipe);
-        }
-        DisableObjectAbroadScreen();
-        _elapsedTime = 0;
-
+        ObjectSpawner = pipeSpawner;
+        ObjectMover = pipeMover;
     }
     
 }

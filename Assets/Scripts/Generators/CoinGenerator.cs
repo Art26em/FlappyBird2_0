@@ -1,28 +1,12 @@
-using UnityEngine;
 using Zenject;
 
-public class CoinGenerator : ObjectPool
+public class CoinGenerator : ObjectGenerator
 {
-    private ObjectSpawner _objectSpawner;
-    private ObjectMover _objectMover;
-    
-    private float _elapsedTime;
-
     [Inject]
-    private void Construct(ObjectSpawner objectSpawner, ObjectMover objectMover)
+    private void Construct(CoinSpawner coinSpawner, CoinMover coinMover)
     {
-        _objectSpawner = objectSpawner;
-        _objectMover = objectMover;
+        ObjectSpawner = coinSpawner;
+        ObjectMover = coinMover;
     }
     
-    private void Start()
-    {
-        Initialize();
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
 }

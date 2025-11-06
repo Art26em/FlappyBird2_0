@@ -25,18 +25,16 @@ public class ObjectPool : MonoBehaviour
     protected void DisableObjectAbroadScreen()
     {
         Vector3 disablePoint = _camera.ViewportToWorldPoint(new Vector2(0, 0.5f));
-        
-        foreach (var item in _pool)
+
+        foreach (var item in _pool.
+                     Where(item => item.activeSelf).
+                     Where(item => item.transform.position.x < disablePoint.x))
         {
-            if (!item.activeSelf) continue;
-            if (item.transform.position.x < disablePoint.x )
-            {
-                item.SetActive(false);
-            }
+            item.SetActive(false);
         }
     }
-    
-    public bool TryGetObject(out GameObject result)
+
+    protected bool TryGetObject(out GameObject result)
     {
         result = _pool.FirstOrDefault(p => p.activeSelf == false);
         return result != null;
