@@ -34,7 +34,7 @@ public class ShopScreen : Screen
 
     public override void Open()
     {
-        canvasGroup.alpha = 1;
+        gameObject.SetActive(true);
         button.interactable = true;
         
         buyArmorButton.interactable = _bird.Coins >= armorPrice && !_bird.isArmored;
@@ -42,7 +42,7 @@ public class ShopScreen : Screen
 
     public override void Close()
     {
-        canvasGroup.alpha = 0;
+        gameObject.SetActive(false);
         button.interactable = false;
         SignalBus.Fire(new GameStateChangedSignal(GameState.Playing));
     }

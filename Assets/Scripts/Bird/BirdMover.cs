@@ -105,7 +105,7 @@ public class BirdMover : MonoBehaviour
         {
             alpha = !alpha;
             _spriteRenderer.color = new Color(1, 1, 1, (alpha ? 1 : 0));
-            yield return null;
+            yield return new WaitForFixedUpdate();
         }
         _circleCollider2D.enabled = true;
         _spriteRenderer.color = _originalColor;

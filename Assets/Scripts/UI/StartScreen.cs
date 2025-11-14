@@ -15,7 +15,6 @@ public class StartScreen : Screen
 
     public override void Open()
     {
-        canvasGroup.alpha = 1;
         button.interactable = true;
         scoreText.text = "";
     }
@@ -25,12 +24,14 @@ public class StartScreen : Screen
         button.interactable = false;
         DOTween.To(FadeOut, 1f, 0f, 2f);
         scoreText.text = StartScoreText;
-        SignalBus.Fire(new GameStateChangedSignal(GameState.Playing));
+        SignalBus.Fire(new GameStateChangedSignal(GameState.Starting));
     }
 
     private void FadeOut(float value)
     {
         canvasGroup.alpha = value;
+        if (value == 0)
+            gameObject.SetActive(false);
     }
     
 }
