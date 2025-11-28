@@ -1,7 +1,6 @@
 using UnityEngine;
 using Zenject;
 
-[RequireComponent(typeof(Bird))]
 public class BirdColliderHandler : MonoBehaviour
 {
     private Bird _bird;
@@ -16,16 +15,16 @@ public class BirdColliderHandler : MonoBehaviour
     {
         if (other.TryGetComponent(out ScoreZone _))
         {
-            _bird.IncrementScore();    
+            _bird.OnScoreZonePassed();    
         }
         else if (other.TryGetComponent(out Coin coin))
         {
-            _bird.IncrementCoins();
+            _bird.OnCoinCollected();
             coin.OnCollect();
         }
         else
         {
-            if (_bird.isArmored)
+            if (_bird.IsArmored)
             {
                 _bird.GetDamage();
             }

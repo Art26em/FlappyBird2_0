@@ -1,10 +1,20 @@
 using UnityEngine;
 using Zenject;
 
-public class Bootstrap : MonoInstaller
+public class GameInstaller : MonoInstaller
 {
-    [SerializeField] private Bird bird;
-    [SerializeField] private GameManager gameManager;
+    [Header("Bird Settings")]
+    
+    [SerializeField] private Sprite normalSprite;
+    [SerializeField] private Sprite deadSprite;
+    
+    [Header("Screens")]
+    [SerializeField] private ShopScreen shopScreen;
+    [SerializeField] private GameOverScreen gameOverScreen;
+    
+    [Header("Object generators")]
+    [SerializeField] private PipeGenerator pipeGenerator;
+    [SerializeField] private CoinGenerator coinGenerator;
     
     [Header("PipeSpawner settings")]
     [SerializeField] private float secondsBetweenPipeSpawn;
@@ -22,32 +32,62 @@ public class Bootstrap : MonoInstaller
     [Header("CoinMover settings")]
     [SerializeField] private float coinMoveSpeed = 2; 
 
-    
     public override void InstallBindings()
     {
         InstallBird();
-        InstallGameManager();
+        InstallScreens();
+        InstallControllers();
         InstallPipes();
         InstallCoins();
         InstallSignals();
     }
-
-    private void InstallGameManager()
-    {
-        Container.Bind<GameManager>().
-            FromInstance(gameManager).
-            AsSingle();
-    }
-
+    
     private void InstallBird()
     {
         Container.Bind<Bird>().
-            FromInstance(bird)
-            .AsSingle();
+            AsSingle();
+        
+         Container.Bind<BirdSpriteController>()
+             .AsSingle()
+             .WithArguments(normalSprite, deadSprite);
+        
+    }
+    
+    private void InstallScreens()
+    {
+        Container.Bind<ShopScreen>().
+            FromInstance(shopScreen).
+            AsSingle();
+        
+        Container.Bind<GameOverScreen>().
+            FromInstance(gameOverScreen).
+            AsSingle();
+    }
+
+    private void InstallControllers()
+    {
+        Container.BindInterfacesAndSelfTo<StateController>().AsSingle();
+        
+        Container.Bind<GameStartController>().
+            AsSingle();
+        
+        Container.Bind<GameResumeController>().
+            AsSingle();
+        
+        Container.Bind<GameOverController>().
+            AsSingle();
+        
+        Container.Bind<ShopController>().
+            AsSingle();
+        
     }
     
     private void InstallPipes()
     {
+        Container.Bind<PipeGenerator>().
+            FromInstance(pipeGenerator)
+            .AsSingle();
+        
         Container.Bind<PipeSpawner>().
             FromInstance(new PipeSpawner(minPipeSpawnPositionY, maxPipeSpawnPositionY, secondsBetweenPipeSpawn)).
             AsSingle();
@@ -63,6 +103,10 @@ public class Bootstrap : MonoInstaller
     
     private void InstallCoins()
     {
+        Container.Bind<CoinGenerator>().
+            FromInstance(coinGenerator)
+            .AsSingle();
+        
         Container.Bind<CoinSpawner>().
             FromInstance(new CoinSpawner(minCoinSpawnPositionY, maxCoinSpawnPositionY, secondsBetweenCoinSpawn)).
             AsSingle();
@@ -79,7 +123,7 @@ public class Bootstrap : MonoInstaller
     private void InstallSignals()
     {
         SignalBusInstaller.Install(Container);
-        
+       
         Container.DeclareSignal<CoinCountChangedSignal>();
         Container.DeclareSignal<ScoreChangedSignal>();
         Container.DeclareSignal<GameStateChangedSignal>();

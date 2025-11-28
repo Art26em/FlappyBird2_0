@@ -8,6 +8,11 @@ public class StartScreen : Screen
 
     private const string StartScoreText = "0";
 
+    private void Start()
+    {
+        Open();    
+    }
+
     protected override void OnButtonClick()
     {
         Close();
@@ -15,16 +20,17 @@ public class StartScreen : Screen
 
     public override void Open()
     {
+        Time.timeScale = 0;
         button.interactable = true;
         scoreText.text = "";
     }
 
     public override void Close()
     {
+        SignalBus.Fire(new GameStateChangedSignal(GameState.Starting));
         button.interactable = false;
         DOTween.To(FadeOut, 1f, 0f, 2f);
         scoreText.text = StartScoreText;
-        SignalBus.Fire(new GameStateChangedSignal(GameState.Starting));
     }
 
     private void FadeOut(float value)

@@ -2,7 +2,7 @@ using TMPro;
 using UnityEngine;
 using Zenject;
 
-public class ScoreManager : MonoBehaviour
+public class ScoreTextProvider
 {
     [SerializeField] private int levelUpScore = 10;
     [SerializeField] private TMP_Text scoreCountLabel;
@@ -22,7 +22,7 @@ public class ScoreManager : MonoBehaviour
 
     private void OnDisable()
     {
-        _signalBus.Unsubscribe<ScoreChangedSignal>(OnScoreChanged);    
+        _signalBus?.Unsubscribe<ScoreChangedSignal>(OnScoreChanged);    
     }
 
     private void OnScoreChanged(ScoreChangedSignal signal)

@@ -7,12 +7,14 @@ using Zenject;
 [RequireComponent(typeof(Animator))]
 [RequireComponent(typeof(SpriteRenderer))]
 [RequireComponent(typeof(CircleCollider2D))]
+
 public class BirdMover : MonoBehaviour
 {
     [SerializeField] private Vector3 startPosition;
     [SerializeField] private Vector3 offsetPosition;
     [SerializeField] private float startAnimationDuration = 1f;
     [SerializeField] private float blinkAnimationDuration = 3f;
+   
     [SerializeField] private float tapForce;
     [SerializeField] private float rotationSpeed;
     [SerializeField] private float maxRotationZ;
@@ -31,12 +33,12 @@ public class BirdMover : MonoBehaviour
     
     private readonly string _birdFlyAnimationName = AnimationNames.BirdFly;
 
-    private GameManager _gameManager;
+    private StateController _stateController;
     
     [Inject]
-    public void Construct(GameManager gameManager)
+    public void Construct(StateController stateController)
     {
-        _gameManager = gameManager;    
+        _stateController = stateController;    
     }
     
     private void Awake()
@@ -65,7 +67,7 @@ public class BirdMover : MonoBehaviour
         }
         
         if ((Input.GetKeyDown(KeyCode.Space) || Input.GetMouseButtonDown(0))
-            && _gameManager.CurrentGameState == GameState.Playing)
+            && _stateController.CurrentGameState == GameState.Playing)
         {
             _animator.Play(_birdFlyAnimationName);
             transform.rotation = _maxRotation;

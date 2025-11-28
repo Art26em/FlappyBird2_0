@@ -36,8 +36,7 @@ public class ShopScreen : Screen
     {
         gameObject.SetActive(true);
         button.interactable = true;
-        
-        buyArmorButton.interactable = _bird.Coins >= armorPrice && !_bird.isArmored;
+        buyArmorButton.interactable = _bird.GetCoinsAmount() >= armorPrice && !_bird.IsArmored;
     }
 
     public override void Close()
@@ -49,8 +48,8 @@ public class ShopScreen : Screen
 
     private void OnBuyButtonClick()
     {
-        _bird.DecrementCoins(armorPrice);
-        _bird.isArmored = true;
+        _bird.OnItemPurchase(armorPrice);
+        _bird.IsArmored = true;
         buyArmorButton.interactable = false;
     }
     

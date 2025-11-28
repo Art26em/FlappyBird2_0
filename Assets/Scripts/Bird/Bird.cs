@@ -1,77 +1,69 @@
 using UnityEngine;
 using Zenject;
 
-[RequireComponent(typeof(BirdMover))]
-[RequireComponent(typeof(SpriteRenderer))]
-public class Bird : MonoBehaviour
+public class Bird
 {
-    [SerializeField] private Sprite deadSprite;
-    [SerializeField] private Sprite normalSprite;
-    
-    private SpriteRenderer _spriteRenderer;
-    private BirdMover _mover;
     private SignalBus _signalBus;
-    private int _score;
-    private int _coins;
+    private BirdSpriteController _birdSpriteController;
+    private readonly SpriteRenderer _spriteRenderer;
+    private readonly Wallet _wallet;
+    private readonly ScoreManager _scoreManager;
     
-    public int Coins => _coins;
-    public bool isArmored;
+    public bool IsArmored;
     
     [Inject]
-    public void Construct(SignalBus signalBus)
+    public void Construct(SignalBus signalBus, BirdSpriteController birdSpriteController)
     {
         _signalBus = signalBus;
-    }
-    
-    private void Awake()
-    {
-        _mover = GetComponent<BirdMover>();
-        _spriteRenderer = GetComponent<SpriteRenderer>();
+        _birdSpriteController = birdSpriteController;
     }
 
+    public Bird()
+    {
+        _spriteRenderer = new SpriteRenderer();
+        _wallet = new Wallet();
+        _scoreManager = new ScoreManager();
+    }
+    
     public void ResetPlayer(bool resetStats = true)
     {
         if (resetStats)
         {
-            _score = 0;
-            _signalBus.Fire(new ScoreChangedSignal(_score));
-
-            _coins = 0;
-            _signalBus.Fire(new CoinCountChangedSignal(_score));    
+            _scoreManager.ResetScore();
+            _wallet.ResetCoins();   
         }
-        _mover.ResetBird();
-        _spriteRenderer.sprite = normalSprite;
+        _birdSpriteController.SetNormalSprite(_spriteRenderer);
     }
 
-    public void IncrementScore()
+    public void OnScoreZonePassed()
     {
-        _score++;
-        _signalBus.Fire(new ScoreChangedSignal(_score));
+        _scoreManager.IncrementScore();
     }
-    
-    public void IncrementCoins()
+
+    public void OnCoinCollected()
     {
-        _coins++;
-        _signalBus.Fire(new CoinCountChangedSignal(_coins));
+        _wallet.IncrementCoins();
     }
-    
-    public void DecrementCoins(int amount)
+
+    public int GetCoinsAmount()
     {
-        _coins -= amount;
-        _signalBus.Fire(new CoinCountChangedSignal(_coins));
+        return _wallet.GetCoinsAmount();
+    }
+
+    public void OnItemPurchase(int amount)
+    {
+        _wallet.DecrementCoins(amount);
     }
     
     public void Die()
     {
-        _mover.DisableAnimator();
-        _spriteRenderer.sprite = deadSprite;
+        _birdSpriteController.SetDeadSprite(_spriteRenderer);
         _signalBus.Fire(new GameStateChangedSignal(GameState.GameOver));
     }
     
     public void GetDamage()
     {
-        isArmored = false;
-        _mover.ShowDamage();
+        IsArmored = false;
     }
     
 }

@@ -16,12 +16,12 @@ public class CoinManager : MonoBehaviour
     
     private void OnEnable()
     {
-        _signalBus.Subscribe<CoinCountChangedSignal>(OnCoinCountChanged);    
+        //_signalBus.Subscribe<CoinCountChangedSignal>(OnCoinCountChanged);    
     }
 
     private void OnDisable()
     {
-        _signalBus.Unsubscribe<CoinCountChangedSignal>(OnCoinCountChanged);    
+        //_signalBus.Unsubscribe<CoinCountChangedSignal>(OnCoinCountChanged);    
     }
 
     private void OnCoinCountChanged(CoinCountChangedSignal signal)
