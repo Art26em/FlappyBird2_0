@@ -2,25 +2,21 @@ using UnityEngine;
 
 public class ObjectSpawner
 {
-    private readonly float _secondsBetweenSpawn;
-    private readonly float _maxSpawnPositionY; 
-    private readonly float _minSpawnPositionY;
+    protected SpawnerSettings Settings;
 
-    protected ObjectSpawner(float minSpawnPositionY, float maxSpawnPositionY, float secondsBetweenSpawn)
+    protected ObjectSpawner(SpawnerSettings settings)
     {
-        _minSpawnPositionY = minSpawnPositionY;
-        _maxSpawnPositionY = maxSpawnPositionY;
-        _secondsBetweenSpawn = secondsBetweenSpawn;
+        Settings = settings;
     }
 
     public bool IsTimeToSpawn(float elapsedTime)
     {
-        return elapsedTime >= _secondsBetweenSpawn;
+        return elapsedTime > Settings.CurrentSecondsBetweenSpawn;
     }
 
     public void SpawnObject(GameObject obj, Vector3 spawnPosition)
     {
-        var spawnPositionY = Random.Range(_minSpawnPositionY, _maxSpawnPositionY);
+        var spawnPositionY = Random.Range(Settings.MinSpawnPositionY, Settings.MaxSpawnPositionY);
         var spawnPoint = new Vector3(spawnPosition.x, spawnPositionY, spawnPosition.z);
         obj.SetActive(true);
         obj.transform.position = spawnPoint;

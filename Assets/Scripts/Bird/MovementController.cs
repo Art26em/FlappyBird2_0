@@ -1,35 +1,59 @@
-﻿using UnityEngine;
+﻿using DG.Tweening;
+using UnityEngine;
 
 public class MovementController
 {
-    private float _tapForce;
-    private float _rotationSpeed;
-    private float _maxRotationZ;
-    private float _minRotationZ;
-    
-    private readonly Transform _player;
-    private readonly Rigidbody2D _rigidbody;
-    private readonly Quaternion _minRotation;
-    private readonly Quaternion _maxRotation;
+    private Transform _player;
+    private Rigidbody2D _rigidbody;
+    private readonly MovementSettings _movementSettings;
 
-    public MovementController(Transform player, Rigidbody2D rigidbody)
+    public MovementController(MovementSettings movementSettings)
     {
-        _player = player;
-        _rigidbody = rigidbody;
-        _minRotation = Quaternion.Euler(0, 0, _minRotationZ);
-        _maxRotation = Quaternion.Euler(0, 0, _maxRotationZ);
+        _movementSettings = movementSettings;
     }
     
-    public void Move()
+    public void SetPlayer(Transform player)
     {
-        _player.rotation = _maxRotation;
+        _player = player;
+    }
+
+    public void SetRigidbody(Rigidbody2D rigidbody)
+    {
+        _rigidbody = rigidbody;
+    }
+    
+    public bool TryMove()
+    {
+        if (!Input.GetKeyDown(KeyCode.Space) && !Input.GetMouseButtonDown(0)) return false;
+        _player.rotation = _movementSettings.MaxRotation;
         _rigidbody.velocity = Vector3.zero;
-        _rigidbody.AddForce(Vector2.up * _tapForce, ForceMode2D.Force);
+        _rigidbody.AddForce(Vector2.up * _movementSettings.TapForce, ForceMode2D.Force);
+        return true;
     }
 
     public void Rotate()
     {
-        _player.rotation = Quaternion.Lerp(_player.rotation, _minRotation, Time.deltaTime * _rotationSpeed);
+        _player.rotation = Quaternion.Lerp(
+            _player.rotation, 
+            _movementSettings.MinRotation, 
+            Time.deltaTime * _movementSettings.RotationSpeed);
+    }
+
+    public void ResetPlayer(float startAnimationDuration)
+    {
+        _player.DOMove(_movementSettings.OffsetPosition, startAnimationDuration);
+        ResetVelocity();
+        ResetRotation();
+    }
+    
+    public void ResetVelocity()
+    {
+        _rigidbody.velocity = Vector2.zero;
+    }
+ 
+    public void ResetRotation()
+    {
+        _player.rotation = Quaternion.Euler(0, 0, 0);
     }
     
 }

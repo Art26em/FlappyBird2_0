@@ -1,6 +1,7 @@
 using TMPro;
 using UnityEngine;
 using DG.Tweening;
+using Zenject;
 
 public class StartScreen : Screen
 {
@@ -8,6 +9,12 @@ public class StartScreen : Screen
 
     private const string StartScoreText = "0";
 
+    [Inject]
+    public void Construct(SignalBus signalBus)
+    {
+        SignalBus = signalBus;    
+    }
+    
     private void Start()
     {
         Open();    

@@ -1,7 +1,13 @@
-using UnityEngine.Events;
+using Zenject;
 
 public class GameOverScreen : Screen
 {
+    [Inject]
+    private void Construct(SignalBus signalBus)
+    {
+        SignalBus = signalBus;    
+    } 
+    
     protected override void OnButtonClick()
     {
         Close();

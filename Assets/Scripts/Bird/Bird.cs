@@ -4,35 +4,27 @@ using Zenject;
 public class Bird
 {
     private SignalBus _signalBus;
-    private BirdSpriteController _birdSpriteController;
-    private readonly SpriteRenderer _spriteRenderer;
-    private readonly Wallet _wallet;
-    private readonly ScoreManager _scoreManager;
+    private ScoreManager _scoreManager;
+    private Wallet _wallet;
     
     public bool IsArmored;
     
     [Inject]
-    public void Construct(SignalBus signalBus, BirdSpriteController birdSpriteController)
+    public void Construct(
+        SignalBus signalBus, 
+        ScoreManager scoreManager, 
+        Wallet wallet)
     {
         _signalBus = signalBus;
-        _birdSpriteController = birdSpriteController;
-    }
-
-    public Bird()
-    {
-        _spriteRenderer = new SpriteRenderer();
-        _wallet = new Wallet();
-        _scoreManager = new ScoreManager();
+        _scoreManager = scoreManager;
+        _wallet = wallet;
     }
     
     public void ResetPlayer(bool resetStats = true)
     {
-        if (resetStats)
-        {
-            _scoreManager.ResetScore();
-            _wallet.ResetCoins();   
-        }
-        _birdSpriteController.SetNormalSprite(_spriteRenderer);
+        if (!resetStats) return;
+        _scoreManager.ResetScore();
+        _wallet.ResetCoins();
     }
 
     public void OnScoreZonePassed()
@@ -57,13 +49,13 @@ public class Bird
     
     public void Die()
     {
-        _birdSpriteController.SetDeadSprite(_spriteRenderer);
         _signalBus.Fire(new GameStateChangedSignal(GameState.GameOver));
     }
     
     public void GetDamage()
     {
         IsArmored = false;
+        _signalBus.Fire(new BirdDamagedSignal());
     }
     
 }

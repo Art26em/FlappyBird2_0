@@ -10,9 +10,10 @@ public class ShopScreen : Screen
     private Bird _bird;
 
     [Inject]
-    public void Construct(Bird bird)
+    public void Construct(Bird bird, SignalBus signalBus)
     {
         _bird = bird;
+        SignalBus = signalBus;
     }
     
     private void OnEnable()

@@ -2,41 +2,39 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
 
-public class ObjectPool : MonoBehaviour
+public class ObjectPool<T> where T : Component
 {
-    [SerializeField] private GameObject template;
-    [SerializeField] private GameObject container;
-    [SerializeField] private int capacity;
+    private int _capacity;
+    private readonly Camera _camera;
+    private readonly List<T> _pool;
 
-    private Camera _camera;
-    private readonly List<GameObject> _pool = new();
-
-    protected void Initialize()
+    public ObjectPool(int capacity)
     {
         _camera = Camera.main;
-        for (int i = 0; i < capacity; i++)
-        {
-            GameObject spawned = Instantiate(template, container.transform);
-            spawned.SetActive(false);
-            _pool.Add(spawned);
-        }
+        _pool = new List<T>(capacity);
     }
-
-    protected void DisableObjectAbroadScreen()
+    
+    public void Add(T obj)
+    {
+        _pool.Add(obj);       
+    }
+    
+    public void DisableObjectAbroadScreen()
     {
         Vector3 disablePoint = _camera.ViewportToWorldPoint(new Vector2(0, 0.5f));
 
         foreach (var item in _pool.
-                     Where(item => item.activeSelf).
-                     Where(item => item.transform.position.x < disablePoint.x))
+                     Where(item => item.gameObject.activeSelf).
+                     Where(item => item.gameObject.transform.position.x < disablePoint.x))
         {
-            item.SetActive(false);
+            
+            item.gameObject.SetActive(false);
         }
     }
 
-    protected bool TryGetObject(out GameObject result)
+    public bool TryGetObject(out T result)
     {
-        result = _pool.FirstOrDefault(p => p.activeSelf == false);
+        result = _pool.FirstOrDefault(p => p.gameObject.activeSelf == false);
         return result != null;
     }
     
@@ -44,7 +42,7 @@ public class ObjectPool : MonoBehaviour
     {
         foreach (var item in _pool)
         {
-            item.SetActive(false);
+            item.gameObject.SetActive(false);
         }
     }
     

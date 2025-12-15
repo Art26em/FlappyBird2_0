@@ -1,5 +1,4 @@
-﻿
-public struct GameStateChangedSignal
+﻿public struct GameStateChangedSignal
 {
     public readonly GameState NewState;
 

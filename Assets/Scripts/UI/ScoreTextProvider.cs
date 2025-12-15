@@ -1,37 +1,33 @@
+using System;
 using TMPro;
-using UnityEngine;
 using Zenject;
 
-public class ScoreTextProvider
+public class ScoreTextProvider : IInitializable, IDisposable
 {
-    [SerializeField] private int levelUpScore = 10;
-    [SerializeField] private TMP_Text scoreCountLabel;
-    
+    private ScoreCountLabel _scoreCountLabel;
+    private TMP_Text _scoreCountText;
     private SignalBus _signalBus;
     
     [Inject]
-    private void Construct(SignalBus signalBus)
+    private void Construct(SignalBus signalBus, ScoreCountLabel scoreCountLabel)
     {
         _signalBus = signalBus;
+        _scoreCountLabel = scoreCountLabel;
     }
     
-    private void OnEnable()
+    public void Initialize()
     {
-        _signalBus.Subscribe<ScoreChangedSignal>(OnScoreChanged);    
+        _signalBus.Subscribe<ScoreChangedSignal>(OnScoreChanged);
+        _scoreCountText = _scoreCountLabel.GetComponent<TMP_Text>();
     }
-
-    private void OnDisable()
-    {
-        _signalBus?.Unsubscribe<ScoreChangedSignal>(OnScoreChanged);    
-    }
-
+    
     private void OnScoreChanged(ScoreChangedSignal signal)
     {
-        scoreCountLabel.text = signal.NewScore.ToString();
-        if (signal.NewScore >= levelUpScore && signal.NewScore % levelUpScore == 0)
-        {
-            _signalBus.Fire(new GameStateChangedSignal(GameState.LevelUp));
-        }
+        _scoreCountText.text = signal.NewScore.ToString();
     }
     
+    public void Dispose()
+    {
+        _signalBus?.Unsubscribe<ScoreChangedSignal>(OnScoreChanged);
+    }
 }

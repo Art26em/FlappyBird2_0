@@ -1,8 +1,8 @@
-﻿using Zenject;
+﻿using UnityEngine;
+using Zenject;
 
 public class ShopController
 {
-    
     private ShopScreen _shopScreen;
 
     [Inject]
@@ -13,6 +13,7 @@ public class ShopController
 
     public void OpenShop()
     {
+        Time.timeScale = 0;
         _shopScreen.Open();
     }
     

@@ -3,21 +3,41 @@ using Zenject;
 
 public class GameInstaller : MonoInstaller
 {
-    [Header("Bird Settings")]
+    [Header("Bird movement settings")] 
+    [SerializeField] private float tapForce;
+    [SerializeField] private float rotationSpeed;
+    [SerializeField] private float maxRotationZ;
+    [SerializeField] private float minRotationZ;
+    [SerializeField] private Vector3 offsetPosition;
     
+    [Header("Animation settings")]
     [SerializeField] private Sprite normalSprite;
     [SerializeField] private Sprite deadSprite;
+    [SerializeField] private float startAnimationDuration;
+    [SerializeField] private float blinkAnimationDuration;
+    
+    [Header("Level Up settings")]
+    [SerializeField] private int levelUpScore;
     
     [Header("Screens")]
     [SerializeField] private ShopScreen shopScreen;
     [SerializeField] private GameOverScreen gameOverScreen;
     
-    [Header("Object generators")]
-    [SerializeField] private PipeGenerator pipeGenerator;
-    [SerializeField] private CoinGenerator coinGenerator;
+    [Header("PipeGenerator settings")] 
+    [SerializeField] private int pipesCount;
+    [SerializeField] private Pipes pipeTemplate;
+    [SerializeField] private GameObject pipesContainer;
+    
+    [Header("CoinGenerator settings")] 
+    [SerializeField] private int coinsCount;
+    [SerializeField] private Coin coinTemplate;
+    [SerializeField] private GameObject coinsContainer;
     
     [Header("PipeSpawner settings")]
     [SerializeField] private float secondsBetweenPipeSpawn;
+
+    [SerializeField] private float minSecondsBetweenPipeSpawn;
+    [SerializeField] private float levelUpDecreasingSeconds;
     [SerializeField] private float maxPipeSpawnPositionY; 
     [SerializeField] private float minPipeSpawnPositionY;
     
@@ -34,23 +54,73 @@ public class GameInstaller : MonoInstaller
 
     public override void InstallBindings()
     {
+        InstallSignals();
+        InstallUI();
         InstallBird();
         InstallScreens();
         InstallControllers();
         InstallPipes();
         InstallCoins();
-        InstallSignals();
+    }
+
+    private void InstallSignals()
+    {
+        SignalBusInstaller.Install(Container);
+        Container.DeclareSignal<CoinCountChangedSignal>();
+        Container.DeclareSignal<ScoreChangedSignal>();
+        Container.DeclareSignal<GameStateChangedSignal>();
+        Container.DeclareSignal<BirdDamagedSignal>();
     }
     
+    private void InstallUI()
+    {
+        Container.Bind<ScoreCountLabel>()
+            .FromComponentInHierarchy()
+            .AsSingle();
+        
+        Container.Bind<CoinCountLabel>()
+            .FromComponentInHierarchy()
+            .AsSingle();
+        
+        Container.BindInterfacesAndSelfTo<ScoreTextProvider>()
+            .AsSingle();
+        
+        Container.BindInterfacesAndSelfTo<CoinTextProvider>()
+            .AsSingle();
+    }
+
     private void InstallBird()
     {
-        Container.Bind<Bird>().
+        Container.Bind<ScoreManager>().
+            AsSingle().
+            WithArguments(levelUpScore);
+
+        Container.Bind<Wallet>().
             AsSingle();
         
-         Container.Bind<BirdSpriteController>()
-             .AsSingle()
-             .WithArguments(normalSprite, deadSprite);
+        Container.Bind<BirdSpriteController>().
+            AsSingle().
+            WithArguments(normalSprite, deadSprite);
+
+        var movementSettings = new MovementSettings(
+            tapForce, 
+            rotationSpeed, 
+            maxRotationZ, 
+            minRotationZ,
+            offsetPosition);
         
+        var animationSettings = new AnimationSettings(startAnimationDuration, blinkAnimationDuration);
+        
+        Container.Bind<MovementController>().
+            AsSingle().
+            WithArguments(movementSettings);
+        
+        Container.BindInterfacesAndSelfTo<AnimationController>().
+            AsSingle().
+            WithArguments(animationSettings);
+        
+		Container.Bind<Bird>()
+            .AsSingle();
     }
     
     private void InstallScreens()
@@ -84,48 +154,44 @@ public class GameInstaller : MonoInstaller
     
     private void InstallPipes()
     {
-        Container.Bind<PipeGenerator>().
-            FromInstance(pipeGenerator)
-            .AsSingle();
+        var pipeSpawnerSettings = new SpawnerSettings(
+            minPipeSpawnPositionY, 
+            maxPipeSpawnPositionY, 
+            secondsBetweenPipeSpawn, 
+            levelUpDecreasingSeconds,
+            minSecondsBetweenPipeSpawn);
         
-        Container.Bind<PipeSpawner>().
-            FromInstance(new PipeSpawner(minPipeSpawnPositionY, maxPipeSpawnPositionY, secondsBetweenPipeSpawn)).
-            AsSingle();
-        
-        Container.Bind<PipeMover>().
-            FromNewComponentOnNewGameObject().
+        Container.BindInterfacesAndSelfTo<PipeSpawner>().
             AsSingle().
-            OnInstantiated<PipeMover>((_, mover) => 
-            {
-                mover.Initialize(pipeMoveSpeed);
-            });    
+            WithArguments(pipeSpawnerSettings);
+
+        Container.Bind<PipeMover>().AsSingle().WithArguments(pipeMoveSpeed); 
+        
+        var pipeGeneratorSettings = new PipeGeneratorSettings(pipesCount, pipeTemplate, pipesContainer);
+        Container.BindInterfacesAndSelfTo<PipeGenerator>().
+            AsSingle().
+            WithArguments(pipeGeneratorSettings);
+        
     }
     
     private void InstallCoins()
     {
-        Container.Bind<CoinGenerator>().
-            FromInstance(coinGenerator)
-            .AsSingle();
+        
+        var coinSpawnerSettings = new SpawnerSettings(
+            minCoinSpawnPositionY, 
+            maxCoinSpawnPositionY, 
+            secondsBetweenCoinSpawn);
         
         Container.Bind<CoinSpawner>().
-            FromInstance(new CoinSpawner(minCoinSpawnPositionY, maxCoinSpawnPositionY, secondsBetweenCoinSpawn)).
-            AsSingle();
-        
-        Container.Bind<CoinMover>().
-            FromNewComponentOnNewGameObject().
             AsSingle().
-            OnInstantiated<CoinMover>((_, mover) => 
-            {
-                mover.Initialize(coinMoveSpeed);
-            }); 
+            WithArguments(coinSpawnerSettings);
+        
+        Container.Bind<CoinMover>().AsSingle().WithArguments(coinMoveSpeed);
+        
+        var coinGeneratorSettings = new CoinGeneratorSettings(coinsCount, coinTemplate, coinsContainer);
+        Container.BindInterfacesAndSelfTo<CoinGenerator>().
+            AsSingle().WithArguments(coinGeneratorSettings);
+        
     }
     
-    private void InstallSignals()
-    {
-        SignalBusInstaller.Install(Container);
-       
-        Container.DeclareSignal<CoinCountChangedSignal>();
-        Container.DeclareSignal<ScoreChangedSignal>();
-        Container.DeclareSignal<GameStateChangedSignal>();
-    }
 }

@@ -11,12 +11,12 @@ public class BirdSpriteController
         _deadSprite = deadSprite;
     }
 
-    public void SetNormalSprite(SpriteRenderer spriteRenderer)
+    public void SetNormalSprite(ref SpriteRenderer spriteRenderer)
     {
         spriteRenderer.sprite = _normalSprite;
     }
     
-    public void SetDeadSprite(SpriteRenderer spriteRenderer)
+    public void SetDeadSprite(ref SpriteRenderer spriteRenderer)
     {
         spriteRenderer.sprite = _deadSprite;
     }

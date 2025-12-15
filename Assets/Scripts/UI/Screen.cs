@@ -9,12 +9,6 @@ public abstract class Screen : MonoBehaviour
 
     protected SignalBus SignalBus;
     
-    [Inject]
-    public void Construct(SignalBus signalBus)
-    {
-        SignalBus = signalBus;    
-    }
-    
     private void OnEnable()
     {
         button.onClick.AddListener(OnButtonClick);

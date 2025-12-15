@@ -1,7 +1,8 @@
-using System.Collections;
+using System;
 using UnityEngine;
-using DG.Tweening;
+using Unity.VisualScripting;
 using Zenject;
+using Sequence = DG.Tweening.Sequence;
 
 [RequireComponent(typeof(Rigidbody2D))]
 [RequireComponent(typeof(Animator))]
@@ -10,35 +11,31 @@ using Zenject;
 
 public class BirdMover : MonoBehaviour
 {
-    [SerializeField] private Vector3 startPosition;
-    [SerializeField] private Vector3 offsetPosition;
-    [SerializeField] private float startAnimationDuration = 1f;
-    [SerializeField] private float blinkAnimationDuration = 3f;
-   
-    [SerializeField] private float tapForce;
-    [SerializeField] private float rotationSpeed;
-    [SerializeField] private float maxRotationZ;
-    [SerializeField] private float minRotationZ;
-    
     private Rigidbody2D _rigidbody;
-    private Quaternion _minRotation;
-    private Quaternion _maxRotation;
     private SpriteRenderer _spriteRenderer;
     private CircleCollider2D _circleCollider2D;
     
     private float _elapsedTime;
     private Animator _animator;
     private Sequence _blinkSequence;
-    private Color _originalColor;
     
-    private readonly string _birdFlyAnimationName = AnimationNames.BirdFly;
-
     private StateController _stateController;
+    private MovementController _movementController;
+	private AnimationController _animationController;    
+
+    private SignalBus _signalBus;
     
     [Inject]
-    public void Construct(StateController stateController)
+    public void Construct(
+        StateController stateController,  
+        MovementController movementController,
+        AnimationController animationController,
+        SignalBus signalBus)
     {
         _stateController = stateController;    
+        _movementController = movementController;
+        _animationController = animationController;
+        _signalBus = signalBus;
     }
     
     private void Awake()
@@ -46,71 +43,64 @@ public class BirdMover : MonoBehaviour
         _rigidbody = GetComponent<Rigidbody2D>();
         _animator = GetComponent<Animator>();
         _spriteRenderer = GetComponent<SpriteRenderer>();
-        _originalColor = _spriteRenderer.color;
         _circleCollider2D = GetComponent<CircleCollider2D>();
     }
 
     private void Start()
     {
-        _minRotation = Quaternion.Euler(0, 0, minRotationZ);
-        _maxRotation = Quaternion.Euler(0, 0, maxRotationZ);
-        ResetBird();
+        _movementController.SetPlayer(transform);
+        _movementController.SetRigidbody(_rigidbody);
+        
+        _animationController.SetAnimator(_animator);
+        _animationController.SetSpriteRenderer(_spriteRenderer);
+        _animationController.SetCollider(_circleCollider2D);
+
+        ResetPlayer();
+    }
+    
+    private void OnEnable()
+    {
+        _signalBus.Subscribe<GameStateChangedSignal>(OnGameStateChanged);
+    }
+    
+    private void OnGameStateChanged(GameStateChangedSignal signal)
+    {
+        switch (signal.NewState)
+        {
+            case GameState.Starting or GameState.Playing:
+                ResetPlayer();
+                break;
+        }
     }
 
     private void Update()
     {
         _elapsedTime += Time.deltaTime;
-        if (_elapsedTime < startAnimationDuration)
-        {
-            _rigidbody.velocity = Vector2.zero;
-            return;
-        }
+        var isStartAnimationPerforming = _animationController.IsStartAnimationPerforming(_elapsedTime);
         
-        if ((Input.GetKeyDown(KeyCode.Space) || Input.GetMouseButtonDown(0))
-            && _stateController.CurrentGameState == GameState.Playing)
+        switch (isStartAnimationPerforming)
         {
-            _animator.Play(_birdFlyAnimationName);
-            transform.rotation = _maxRotation;
-            _rigidbody.velocity = Vector3.zero;
-            _rigidbody.AddForce(Vector2.up * tapForce, ForceMode2D.Force);
+            case true:
+                _movementController.ResetVelocity();
+                _movementController.ResetRotation();
+                break;
+            case false when _stateController.CurrentGameState is GameState.Playing or GameState.Starting:
+                var moved = _movementController.TryMove();
+                if (moved) _animationController.ShowFlyAnimation();
+                _movementController.Rotate();
+                break;
         }
-        
-        transform.rotation = Quaternion.Lerp(transform.rotation, _minRotation, Time.deltaTime * rotationSpeed);    
-    }
-
-    public void ResetBird()
-    {
-        transform.position = startPosition;
-	 	transform.DOMove(offsetPosition, startAnimationDuration);
-        _rigidbody.velocity = Vector2.zero;
-        transform.rotation = Quaternion.Euler(0, 0, 0);
-        _elapsedTime = 0;
-        _animator.enabled = true;
     }
     
-    public void DisableAnimator()
+    private void ResetPlayer()
     {
-        _animator.enabled = false;
-    }
-
-    public void ShowDamage()
-    {
+        _movementController.ResetPlayer(_animationController.GetStartAnimationDuration());
         _elapsedTime = 0;
-        StartCoroutine(AnimateDamage());
     }
-
-    private IEnumerator AnimateDamage()
+    
+    private void OnDisable()
     {
-        _circleCollider2D.enabled = false;
-        bool alpha = true;
-        while (_elapsedTime < blinkAnimationDuration)
-        {
-            alpha = !alpha;
-            _spriteRenderer.color = new Color(1, 1, 1, (alpha ? 1 : 0));
-            yield return new WaitForFixedUpdate();
-        }
-        _circleCollider2D.enabled = true;
-        _spriteRenderer.color = _originalColor;
+        _signalBus.Unsubscribe<GameStateChangedSignal>(OnGameStateChanged);    
     }
     
 }
